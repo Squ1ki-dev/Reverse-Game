@@ -1,1 +1,1 @@
-# Reverse-Game
+# Reverse-Game это игра наоборот
