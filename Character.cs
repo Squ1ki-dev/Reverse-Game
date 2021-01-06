@@ -6,15 +6,17 @@ using UnityEngine.UI;
 
 public class Character : Unit
 {
-    [SerializeField] // Кол-во жизней
-    private int lives = 3;
-    
+    private bool isGround;
+    private float moveInput;
+
+    [SerializeField] private int lives = 3;
     [SerializeField] private float speedX;
-    [SerializeField] private float normalSpeed;
     [SerializeField] private float jumpForce;
+    [SerializeField] private float normalSpeed;
     [SerializeField] private float checkRadius;
     
     [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private Transform feetPos;
 
     public int Lives
     {
@@ -27,15 +29,10 @@ public class Character : Unit
     }
     private LivesBar livesBar;
 
-    private float moveInput;
-
-    private Rigidbody2D rb;
     private Animator anim;
-
-    private bool isGround;
-    [SerializeField] private LayerMask whatIsGround;
+    private Rigidbody2D rb;
     
-    private void Start() //Новый компонент
+    private void Start()
     {
         speedX = 0f;
         anim = GetComponent<Animator>();
@@ -43,41 +40,56 @@ public class Character : Unit
         livesBar = FindObjectOfType<LivesBar>();
     }
 
-    public void LeftButtonDown() //Левая кнопка нажата
+    public void LeftButtonDown()
     {
         speedX = -normalSpeed;
-        anim.SetBool("isRunning", true);
+        transform.eulerAngles = new Vector3(0, 180, 0);
     }
 
-    public void RightButtonDown() //Правая кнопка нажата
+    public void RightButtonDown()
     {
-        speedX = normalSpeed;
-        anim.SetBool("isRunning", true);
+        if(speedX <= 0f)
+        {
+            speedX = normalSpeed;
+            transform.eulerAngles = new Vector3(0, 0, 0);
+        }
     }
 
-    public void Stop() //СТОП
+    public void OnButtonUp()
     {
         speedX = 0f;
         anim.SetBool("isRunning", false);
     }
 
-    public void JumpButtonDown() //Нажатие кнопки прыжка
+    public void JumpButtonDown()
     {
         if(isGround == true)
         {
             rb.AddForce(new Vector2(0, jumpForce));
-            anim.SetBool("isJumping", true);
+            anim.SetTrigger("takeOff");
         }
     }
 
-    private void FixedUpdate() //Перемещение
+    private void FixedUpdate()
     {   
-        transform.Translate(speedX, 0, 0);
+        rb.velocity = new Vector2(speedX, rb.velocity.y);
+        
+        if(speedX != 0f)
+            anim.SetBool("isRunning", true);
         
         if(lives < 1)
-        {
             SceneManager.LoadScene(3);
-        }
+    }
+    
+    private void Update()
+    {   
+        isGround = Physics2D.OverlapCircle(feetPos.position, checkRadius, whatIsGround);
+        
+        if(isGround == true)
+            anim.SetBool("isJumping", false);
+            
+        if(isGround == true)
+            anim.SetBool("isJumping", false);
     }
    
     private void OnCollisionEnter2D(Collision2D collision) //Проверка на земле ли игрок
