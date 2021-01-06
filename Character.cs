@@ -8,6 +8,13 @@ public class Character : Unit
 {
     [SerializeField] // Кол-во жизней
     private int lives = 3;
+    
+    [SerializeField] private float speedX;
+    [SerializeField] private float normalSpeed;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private float checkRadius;
+    
+    [SerializeField] private LayerMask whatIsGround;
 
     public int Lives
     {
@@ -20,38 +27,38 @@ public class Character : Unit
     }
     private LivesBar livesBar;
 
-    public float speedX;
-    public float normalSpeed;
-    public float jumpForce;
-    public float checkRadius;
-
     private float moveInput;
 
-    private Rigidbody2D rb; //Физика 2D
+    private Rigidbody2D rb;
+    private Animator anim;
 
-    private bool isGround; //Тэг для Триггера
-    public LayerMask whatIsGround;
+    private bool isGround;
+    [SerializeField] private LayerMask whatIsGround;
     
     private void Start() //Новый компонент
     {
-        livesBar = FindObjectOfType<LivesBar>();
         speedX = 0f;
+        anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        livesBar = FindObjectOfType<LivesBar>();
     }
 
     public void LeftButtonDown() //Левая кнопка нажата
     {
         speedX = -normalSpeed;
+        anim.SetBool("isRunning", true);
     }
 
     public void RightButtonDown() //Правая кнопка нажата
     {
         speedX = normalSpeed;
+        anim.SetBool("isRunning", true);
     }
 
     public void Stop() //СТОП
     {
         speedX = 0f;
+        anim.SetBool("isRunning", false);
     }
 
     public void JumpButtonDown() //Нажатие кнопки прыжка
@@ -59,6 +66,7 @@ public class Character : Unit
         if(isGround == true)
         {
             rb.AddForce(new Vector2(0, jumpForce));
+            anim.SetBool("isJumping", true);
         }
     }
 
@@ -87,13 +95,10 @@ public class Character : Unit
     private void OnTriggerEnter2D(Collider2D other) //Триггер
     {
         if(other.tag == "Trigger")
-        {
             SceneManager.LoadScene(3);
-        }
+            
         if(other.tag == "TheEnd")
-        {
             SceneManager.LoadScene(4);
-        }
     }
 
     public override void ReceiveDamage()
